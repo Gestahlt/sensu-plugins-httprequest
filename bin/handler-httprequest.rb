@@ -1,4 +1,28 @@
 #!/usr/bin/env ruby
+#
+#   handler-httprequest.rb
+#
+# DESCRIPTION:
+#
+# OUTPUT:
+#   json, www-form
+#
+# PLATFORMS:
+#   Linux, BSD, Solaris
+#
+# DEPENDENCIES:
+#   gem: sensu-plugin
+#
+# USAGE:
+#
+# NOTES:
+#
+# LICENSE:
+#   Joachim Jabs
+#   Released under the same terms as Sensu (the MIT license); see LICENSE
+#   for details.
+#
+
 require 'net/http'
 require 'sensu-handler'
 require 'erb'

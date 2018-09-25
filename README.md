@@ -1,24 +1,56 @@
-# Sensu Plugin Skeleton
+# Sensu Plugin httprequest 
 
-All the files you'll need to start your own plugin written in Ruby [for Sensu](https://github.com/sensu/sensu), the monitoring framework.
+## Functionality
 
-## Useful to Me?
+## Files
+ * bin/handler-httprequest.rb
+ * examples/template.erb
+ * examples/handler_example.json
 
-* Copy the files in this repository if you want to write a Ruby plugin following best practices of layout and structure
-* To write the actual functionality, you'll need to import [Sensu Plugin gem](https://github.com/sensu-plugins/sensu-plugin)
-* If you'd prefer writing in Python, use the [Python Plugin library](https://github.com/sensu-plugins/sensu-plugin-python)
-* Regardless of the chosen language, prepare the plugin to be released as a Ruby gem for optimal portability (example: [MongoDB has Ruby and Python code](https://github.com/sensu-plugins/sensu-plugins-mongodb/tree/master/bin))
+## Usage for handler-httprequest.rb
+```
+{ 
+  "httprequest": {
+    "method": "Post",
+    "url": "http://my-rest-endpoint.com/path/to/api",
+    "body": { 
+      "body": "content",
+      "dependend": "On header content type",
+      "it_is": "either www-form or json"
+    },
+    "header": { 
+      "Content-Type": "application/json",
+      "default": "application/x-www-form-urlencoded",
+      "other_headers": "like User-Agent and such"
+    },
+    "params": { 
+      "this_translates": "to request parameters",
+      "for_each": "key value pair"
+    },
+    "username": "used_for",
+    "password": "basic_auth",
+    "subscriptions": {
+      "minimal_all_else_is_optional": {
+        "url": "http://default-method-is.post"
+      },
+      "templated": {
+        "url": "https://content-key-value-pairs.are/exclusive/with/templates,
+        "body_template": "/path/to/body_template.erb",
+        "header_template": "/path/to/header_template.erb",
+        "params_template": "/path/to/params_template.erb"
+      }
+    }
+  }
+}
+```
 
-## Checklist
+## Installation
 
-To release your own plugin, complete the following:
+[Installation and Setup](https://sensu-plugins.io/docs/installation_instructions.html)
 
-- [ ] Double check that another plugin doesn't already do what you need by [searching the Sensu Plugins organization](https://github.com/sensu-plugins)
-- [ ] Copy the files here into your own repository following the naming convention of `sensu-plugins-$FOO`
-- [ ] Delete or move this file and rename `README-skel.md` to `README.md`
-- [ ] Write your own checks, handlers or mutators using the plugin library of your choice
-- [ ] Push them to your own GitHub repository
-- [ ] Release them as a Ruby gem for optimal portability within the Sensu 1.x framework
-- [ ] Ask for feedback from your peers by sharing it on in the #contributing channel on [Sensu Community Slack](http://slack.sensu.io)
-- [ ] When you're ready to share further, offer to share it with broader community [by transferring it to Sensu Plugins organization](https://github.com/sensu-plugins/community/blob/master/TRANSFERRING_REPOS.md)
-- [ ] If you end up loving maintaining your plugin, [volunteer to be an org maintainer](https://github.com/sensu-plugins/community#how-you-can-help)
+## Notes
+
+The configuration works also without a http request definition and subscriptions only. Subscriptions are optional. 
+The "main" request definition will trigger always when the handler is executed and additionally all matching subscriptions.
+An alternate configuration name can be supplied with the parameter -j / --json.
+Templates must conform to a json output format.
