@@ -47,6 +47,7 @@ class HttpRequest < Sensu::Handler
     # Maybe async for multiple items?
     requests.list.each do | task |
       HttpRequest::Task.new(task)
+    end
   end
   
   class Config
