@@ -4,12 +4,12 @@ lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 
 require 'date'
-require_relative 'lib/sensu-plugins-skel'
+require_relative 'lib/sensu-plugins-httprequest'
 
 Gem::Specification.new do |s| # rubocop:disable Metrics/BlockLength
   s.authors                = ['Sensu-Plugins and contributors']
   s.date                   = Date.today.to_s
-  s.description            = 'Sensu skel plugins'
+  s.description            = 'Sensu plugin for triggering http requests on events'
   s.email                  = '<sensu-users@googlegroups.com>'
   s.executables            = Dir.glob('bin/**/*.rb').map { |file| File.basename(file) }
   s.files                  = Dir.glob('{bin,lib}/**/*') + %w[LICENSE README.md CHANGELOG.md]
