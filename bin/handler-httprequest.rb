@@ -43,15 +43,10 @@ class HttpRequest < Sensu::Handler
     default: 'httprequest'
 
   def handle
-    if ! settings[config[:json_config].nil?
-      requests = HttpRequest::Config.new(settings[config[:json_config]], @event)
-      # Maybe async for multiple items?
-      requests.list.each do | task |
-        HttpRequest::Task.new(task)
-      end
-    else
-      puts "No configuration for #{:json_config.to_s} defined"
-    end
+    requests = HttpRequest::Config.new(settings[config[:json_config]], @event)
+    # Maybe async for multiple items?
+    requests.list.each do | task |
+      HttpRequest::Task.new(task)
   end
   
   class Config
