@@ -55,6 +55,7 @@ class HttpRequest < Sensu::Handler
   end
   
   class Config
+    attr_accessor :event
     
     def initialize(config, event)
       @event = event
@@ -204,7 +205,7 @@ class HttpRequest < Sensu::Handler
     
     # Is this OK?
     def validate_content_template(template)
-      return validate_content(JSON.parse(ERB.new(File.read(template)).result))
+      return validate_content(JSON.parse(ERB.new(File.read(template)).result(binding)))
     rescue StandardError => e
       puts "Configuration or template error: #{e.message}"
       return false
@@ -282,7 +283,7 @@ class HttpRequest < Sensu::Handler
     
     # Could be nicer
     def request_constructor(task)
-      puts task.header.nil?
+
       if ! task.header.nil? #|| ! task.header.empty?
         if task.header.has_key?('Content-Type') && task.header['Content-Type'].include?("json")
           @request = task.request_method.new(@uri, task.header)
