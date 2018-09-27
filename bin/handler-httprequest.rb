@@ -24,7 +24,7 @@
 #
 
 require 'net/http'
-#require 'sensu-handler'
+require 'sensu-handler'
 require 'erb'
 require 'timeout'
 require 'json'
@@ -33,7 +33,7 @@ require 'mixlib/cli'
 require 'ostruct'
 
 # Main class
-class HttpRequest #< Sensu::Handler
+class HttpRequest < Sensu::Handler
   include Mixlib::CLI
 
   option  :json_config,
