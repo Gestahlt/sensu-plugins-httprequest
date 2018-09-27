@@ -24,7 +24,7 @@
 #
 
 require 'net/http'
-require 'sensu-handler'
+#require 'sensu-handler'
 require 'erb'
 require 'timeout'
 require 'json'
@@ -33,7 +33,7 @@ require 'mixlib/cli'
 require 'ostruct'
 
 # Main class
-class HttpRequest < Sensu::Handler
+class HttpRequest #< Sensu::Handler
   include Mixlib::CLI
 
   option  :json_config,
@@ -85,10 +85,10 @@ class HttpRequest < Sensu::Handler
       valid_config = {}
       @basic_auth = false
       @use_ssl = false
-      return unless preflight_check_ok
+      return unless preflight_check_ok(config)
 
       defaults.each_key do |key|
-        next if config[key].empty? && key.to_s.include?('username') && key.to_s.include?('password')
+        next if config[key].empty? || key.to_s.include?('username') || key.to_s.include?('password')
 
         valid_config[key] = send("validate_#{key}", config[key])
         return unless valid_config[key]
@@ -126,17 +126,17 @@ class HttpRequest < Sensu::Handler
         'password' => ''
       }
     end
-        
+
     ### Preflight Validations ###
     private
-    def preflight check_ok
+    def preflight_check_ok(config)
       ["url_config", "method_config", "exclusives", "dependend"].each do | preflight |
         # if self send false, return false, else true
         return false unless self.send("validate_#{preflight}", config)
       end
       true
     end
-    
+
     def validate_url_config(config)
       # This is not really a problem since a config can only have subscriptions.
       if config.has_key?('url') && config['url'].empty?
@@ -144,7 +144,7 @@ class HttpRequest < Sensu::Handler
       end
       return true
     end
-    
+
     def validate_method_config(config)
       if config['method'].empty?
         puts "Key \"method\" defined but empty. Valid request methods: #{valid_request_methods.join(" ")}"
@@ -152,7 +152,7 @@ class HttpRequest < Sensu::Handler
       end
       return true
     end
-    
+
     def validate_dependend(config)
       fail_count = 0
       ["username", "password"].each do | element |
@@ -169,7 +169,7 @@ class HttpRequest < Sensu::Handler
       end
       return true
     end
-    
+
     ### Config validations ###
     def valid_request_methods
       [
@@ -182,7 +182,7 @@ class HttpRequest < Sensu::Handler
         'Delete'
       ]
     end
-    
+
     def validate_exclusives(config)
       ["body", "header", "params"].each do | element |        
         if ! config["#{element}_template"].empty? && ! config[element].empty?
@@ -192,7 +192,7 @@ class HttpRequest < Sensu::Handler
       end
       return true
     end
-    
+
     def validate_method(method)
       # Todo return that class constant maybe?
       unless valid_request_methods.include?(method.capitalize)
@@ -201,7 +201,7 @@ class HttpRequest < Sensu::Handler
       end
       return "Net::HTTP::#{method.capitalize}".split('::').inject(Object) {|o,c| o.const_get c}
     end
-    
+
     def validate_url(url)
       valid_url = URI.parse(url)
       # Only accept http/https? 
@@ -211,7 +211,7 @@ class HttpRequest < Sensu::Handler
       puts "Configured URL #{url} is not valid"
       return false
     end
-    
+
     # Is this OK?
     def validate_content_template(template)
       return validate_content(JSON.parse(ERB.new(File.read(template)).result(binding)))
@@ -219,7 +219,7 @@ class HttpRequest < Sensu::Handler
       puts "Configuration or template error: #{e.message}"
       return false
     end
-    
+
     # Is this OK too?
     def validate_content(content)
       if content.respond_to?(:each_pair)
@@ -229,12 +229,12 @@ class HttpRequest < Sensu::Handler
         return false
       end
     end
-        
+
     def validate_certs(certificate)
     ### stub - certifcate handling not implemented yet ###
       return certificate
     end
-    
+
     ### Helpers for templates ###
     def status_to_string
       case @event['check']['status']
@@ -248,7 +248,7 @@ class HttpRequest < Sensu::Handler
           'UNKNOWN'
       end
     end
-    
+
     def alert_state
       case @event['action']
         when 'create'
@@ -257,7 +257,7 @@ class HttpRequest < Sensu::Handler
           'RESOLVED'
       end
     end
-    
+
     ### Aliases must be set at the end of the class. Maybe because its interpreted... ###
     alias_method :validate_body, :validate_content
     alias_method :validate_body_template, :validate_content_template
@@ -269,14 +269,14 @@ class HttpRequest < Sensu::Handler
     alias_method :validate_client_cert, :validate_certs
     alias_method :validate_client_key, :validate_certs    
   end
-  
+
   class Validaton
     # stub
   end
-  
+
   # Performs the actual HTTP Request
   class Task
-    
+
     def initialize(task)
       # TODO: SSL certificate handling
       @uri = task.url
@@ -291,10 +291,10 @@ class HttpRequest < Sensu::Handler
         http_conn.finish
       rescue StandardError => e
         puts "something went wrong: #{e.message}"
-      end      
+      end
 
     end
-    
+
     # Could be nicer
     def request_constructor(task)
 
@@ -320,6 +320,5 @@ class HttpRequest < Sensu::Handler
     end
 
   end
-  
-end
 
+end
