@@ -1,11 +1,11 @@
 # Sensu Plugin httprequest 
 
 ## Functionality
+  This plugin is intended as a versatile method to trigger HTTP(S) REST
+  requests (i.e. for SMS gateways, Ticket systems and so on).
 
 ## Files
  * bin/handler-httprequest.rb
- * examples/template.erb
- * examples/handler_example.json
 
 ## Usage for handler-httprequest.rb
 ```
@@ -43,6 +43,13 @@
   }
 }
 ```
+## Usage for template.erb
+```
+{ 
+ ### TODO
+}
+```
+
 
 ## Installation
 
@@ -50,7 +57,7 @@
 
 ## Notes
 
-The configuration works also without a http request definition and subscriptions only. Subscriptions are optional. 
+The configuration works also without a HTTP request definition and subscriptions only. Subscriptions are optional. 
 The "main" request definition will trigger always when the handler is executed and additionally all matching subscriptions.
 An alternate configuration name can be supplied with the parameter -j / --json.
-Templates must conform to a json output format.
+Templates must conform to json format.
