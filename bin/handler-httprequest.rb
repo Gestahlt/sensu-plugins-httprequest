@@ -44,7 +44,7 @@ class HttpRequest < Sensu::Handler
     default: 'httprequest'
 
   def handle
-    requests = HttpRequest::Config.new(settings[config[:json_config]], @event)
+    requests = HttpRequest::Config.new(settings[:json_config], @event)
     # Maybe async for multiple items?
     requests.list.each do | task |
       HttpRequest::Task.new(task)
