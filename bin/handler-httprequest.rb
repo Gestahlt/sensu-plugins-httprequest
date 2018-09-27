@@ -90,7 +90,7 @@ class HttpRequest < Sensu::Handler
       defaults.each_key do |key|
         next if config[key].empty? && key.to_s.include?('username') && key.to_s.include?('password')
 
-        valid_config[key] = self.send("validate_#{key}", config[key]))
+        valid_config[key] = send("validate_#{key}", config[key])
         return unless valid_config[key]
 
       end
@@ -268,6 +268,10 @@ class HttpRequest < Sensu::Handler
     alias_method :validate_ca_cert, :validate_certs
     alias_method :validate_client_cert, :validate_certs
     alias_method :validate_client_key, :validate_certs    
+  end
+  
+  class Validaton
+    # stub
   end
   
   # Performs the actual HTTP Request
