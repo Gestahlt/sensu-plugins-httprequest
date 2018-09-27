@@ -46,7 +46,7 @@
 ## Usage for template.erb
 ```
 { 
- ### TODO
+  "message": "#{@event['client']['name']} #{@event['check']['name']} #{@event['check']['status']}"
 }
 ```
 

@@ -35,6 +35,7 @@ require 'ostruct'
 
 class HttpRequest < Sensu::Handler
   include Mixlib::CLI
+  # TODO Add some message helpers to translate alert status into a readable string
   
   option :json_config,
     description: 'Configuration name',
@@ -43,13 +44,11 @@ class HttpRequest < Sensu::Handler
     default: 'httprequest'
 
   def handle
-
     requests = HttpRequest::Config.new(settings[config[:json_config]], @event)
     # Maybe async for multiple items?
     requests.list.each do | task |
       HttpRequest::Task.new(task)
     end
-
   end
   
   # Small helpers. 
@@ -239,12 +238,10 @@ class HttpRequest < Sensu::Handler
     
     def initialize(task)
       # TODO: SSL certificate handling
-      puts task
       @uri = task.url
       @uri.query = URI.encode_www_form(task.params) unless task.params.nil? || task.params.empty?
       @request = "" 
       request_constructor(task)
-      puts @request
       
       begin
         http_conn = Net::HTTP.start(@uri.host, @uri.port, :use_ssl => task.use_ssl)
