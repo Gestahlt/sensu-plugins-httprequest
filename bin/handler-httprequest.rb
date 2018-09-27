@@ -35,8 +35,7 @@ require 'ostruct'
 
 class HttpRequest < Sensu::Handler
   include Mixlib::CLI
-  # TODO Add some message helpers to translate alert status into a readable string
-  
+
   option :json_config,
     description: 'Configuration name',
     short: '-j JSONCONFIG',
@@ -44,22 +43,26 @@ class HttpRequest < Sensu::Handler
     default: 'httprequest'
 
   def handle
-    requests = HttpRequest::Config.new(settings[:json_config], @event)
-    # Maybe async for multiple items?
-    requests.list.each do | task |
-      HttpRequest::Task.new(task)
+    if ! settings[config[:json_config].nil?
+      requests = HttpRequest::Config.new(settings[config[:json_config]], @event)
+      # Maybe async for multiple items?
+      requests.list.each do | task |
+        HttpRequest::Task.new(task)
+      end
+    else
+      puts "No configuration for #{:json_config.to_s} defined"
     end
   end
   
-  # Small helpers. 
   class Config
     
     def initialize(config, event)
+      @event = event
       @config_list = Array.new
       config_item = validate(defaults.merge(config))
       @config_list.push(config_item) unless config_item.nil?
-      if config.has_key?('subscriptions') && event['client'].has_key?('subscriptions')
-        event['client']['subscriptions'].each do | subscription_config |
+      if config.has_key?('subscriptions') && @event['client'].has_key?('subscriptions')
+        @event['client']['subscriptions'].each do | subscription_config |
           if config['subscriptions'].has_key?(subscription_config) && 
               config_item = validate(defaults.merge(config['subscriptions'][subscription_config]))
               @config_list.push(config_item) unless config_item.nil?
@@ -220,6 +223,29 @@ class HttpRequest < Sensu::Handler
     def validate_certs(certificate)
     ### stub - certifcate handling not implemented yet ###
       return certificate
+    end
+    
+    ### Helpers for templates ###
+    def status_to_string
+      case @event['check']['status']
+        when 0
+          'OK'
+        when 1
+          'WARNING'
+        when 2
+          'CRITICAL'
+        else
+          'UNKNOWN'
+      end
+    end
+    
+    def alert_state
+      case @event['action']
+        when 'create'
+          'ALERT'
+        when 'resolve'
+          'RESOLVED'
+      end
     end
     
     ### Aliases must be set at the end of the class. Maybe because its interpreted... ###

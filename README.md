@@ -45,8 +45,10 @@
 ```
 ## Usage for template.erb
 ```
-{ 
-  "message": "#{@event['client']['name']} #{@event['check']['name']} #{@event['check']['status']}"
+{
+  "message": "<%= @event['client']['name'] @event['check']['name'] %>",
+  "event_check_status_helper": "<%= status_to_string %>",
+  "event_action_helper": "<%= alert_state %>"
 }
 ```
 
