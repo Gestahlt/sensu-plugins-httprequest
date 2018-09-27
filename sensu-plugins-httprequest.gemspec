@@ -27,7 +27,7 @@ Gem::Specification.new do |s| # rubocop:disable Metrics/BlockLength
   s.required_ruby_version  = '>= 2.0.0'
   s.summary                = 'Sensu plugin for triggering http requests on events'
   s.test_files             = s.files.grep(%r{^(test|spec|features)/})
-  s.version                = SensuPluginHttpRequest::Version::VER_STRING
+  s.version                = SensuPluginsHttpRequest::Version::VER_STRING
 
   s.add_runtime_dependency 'sensu-plugin', '~> 2.0'
 
