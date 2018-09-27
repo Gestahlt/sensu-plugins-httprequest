@@ -32,82 +32,69 @@ require 'uri'
 require 'mixlib/cli'
 require 'ostruct'
 
-
+# Main class
 class HttpRequest < Sensu::Handler
   include Mixlib::CLI
 
-  option :json_config,
-    description: 'Configuration name',
-    short: '-j JSONCONFIG',
-    long: '--json JSONCONFIG',
-    default: 'httprequest'
+  option  :json_config,
+          description:  'Configuration name',
+          short:        '-j JSONCONFIG',
+          long:         '--json JSONCONFIG',
+          default:      'httprequest'
 
   def handle
     requests = HttpRequest::Config.new(settings[config[:json_config]], @event)
     # Maybe async for multiple items?
-    requests.list.each do | task |
+    requests.list.each do |task|
       HttpRequest::Task.new(task)
     end
   end
-  
-  class Config
+
+  # Creates a object which is easily parsable for the Task class.
+  class Config # rubocop:disable Metrics/ClassLength
     attr_accessor :event
-    
+
     def initialize(config, event)
       @event = event
-      @config_list = Array.new
-      config_item = validate(defaults.merge(config))
-      @config_list.push(config_item) unless config_item.nil?
-      if config.has_key?('subscriptions') && @event['client'].has_key?('subscriptions')
-        @event['client']['subscriptions'].each do | subscription_config |
-          if config['subscriptions'].has_key?(subscription_config) && 
-              config_item = validate(defaults.merge(config['subscriptions'][subscription_config]))
-              @config_list.push(config_item) unless config_item.nil?
+      @config_list = []
+      build_list(config)
+    end
+
+    def build_list(config)
+      add_config_item(config)
+      # No better idea for now
+      if config.key?('subscriptions') && @event['client'].key?('subscriptions')
+        @event['client']['subscriptions'].each do |subscription_config|
+          if config['subscriptions'].key?(subscription_config)
+            add_config_item(config['subscriptions'][subscription_config])
           end
         end
-      end    
+      end
     end
-    
+
+    def add_config_item(config)
+      config_item = validate(defaults.merge(config))
+      @config_list.push(config_item) unless config_item.nil?
+    end
+
     def list
       @config_list
     end
-    
-    def defaults
-      {
-        "method" => "Post",
-        "url" => "",
-        "body_template" => "",
-        "body" => {},
-        "header_template" => "",
-        "header" => {},
-        "params_template" => "",
-        "params" => "",
-        "client_cert" => "",
-        "ca_cert" => "",
-        "client_key" => "",
-        "username" => "",
-        "password" => ""
-      }
-    end
 
     def validate(config) 
-      valid_config = Hash.new
+      valid_config = {}
       @basic_auth = false
       @use_ssl = false
-      # Preflight checks
-      ["url_config", "method_config", "exclusives", "dependend"].each do | preflight |
-        unless self.send("validate_#{preflight}", config)
-          return
-        end
+      return unless preflight_check_ok
+
+      defaults.each_key do |key|
+        next if config[key].empty? && key.to_s.include?('username') && key.to_s.include?('password')
+
+        valid_config[key] = self.send("validate_#{key}", config[key]))
+        return unless valid_config[key]
+
       end
-      defaults.each_key do | key |
-        if ! config[key].empty? && ! key.to_s.include?("username") && ! key.to_s.include?("password")
-          valid_config[key] = self.send("validate_#{key}", config[key])
-          if ! valid_config[key]
-            return
-          end
-        end
-      end
+
       # Make it more uniform
       ["body", "header", "params"].each do | content |
         unless valid_config["#{content}_template"].nil? || valid_config["#{content}_template"].empty? 
@@ -121,9 +108,35 @@ class HttpRequest < Sensu::Handler
       valid_config['use_ssl'] = @use_ssl
       return OpenStruct.new(valid_config)
     end
+
+    def defaults # rubocop:disable Metrics/MethodLength
+      {
+        'method' => 'Post',
+        'url' => '',
+        'body_template' => '',
+        'body' => {},
+        'header_template' => '',
+        'header' => {},
+        'params_template' => '',
+        'params' => '',
+        'client_cert' => '',
+        'ca_cert' => '',
+        'client_key' => '',
+        'username' => '',
+        'password' => ''
+      }
+    end
         
     ### Preflight Validations ###
     private
+    def preflight check_ok
+      ["url_config", "method_config", "exclusives", "dependend"].each do | preflight |
+        # if self send false, return false, else true
+        return false unless self.send("validate_#{preflight}", config)
+      end
+      true
+    end
+    
     def validate_url_config(config)
       # This is not really a problem since a config can only have subscriptions.
       if config.has_key?('url') && config['url'].empty?
@@ -159,7 +172,7 @@ class HttpRequest < Sensu::Handler
     
     ### Config validations ###
     def valid_request_methods
-      valid_request_methods = [
+      [
         'Get',
         'Head',
         'Post',
@@ -257,6 +270,7 @@ class HttpRequest < Sensu::Handler
     alias_method :validate_client_key, :validate_certs    
   end
   
+  # Performs the actual HTTP Request
   class Task
     
     def initialize(task)
