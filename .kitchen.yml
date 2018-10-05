@@ -1,0 +1,28 @@
+---
+driver:
+  name: docker
+  use_sudo: false
+
+provisioner:
+  name: shell
+  data_path: .
+  script: test/fixtures/bootstrap.sh
+
+verifier:
+  ruby_bindir: /usr/local/bin
+
+platforms:
+  - name: ubuntu-16.04
+  - name: centos-7
+  - name: debian-8
+
+suites:
+  - name: ruby-23
+    driver:
+      image: ruby:2.3-slim
+  - name: ruby-24
+    driver:
+      image: ruby:2.4-slim
+  - name: ruby-25
+    driver:
+      image: ruby:2.5-slim

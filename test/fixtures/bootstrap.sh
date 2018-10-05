@@ -24,5 +24,5 @@ RUBY_HOME=${MY_RUBY_HOME}
 
 # Install gems
 cd $DATA_DIR
-SIGN_GEM=false gem build sensu-plugins-skel.gemspec
-gem install sensu-plugins-skel-*.gem
+SIGN_GEM=false gem build sensu-plugins-httprequest.gemspec
+gem install sensu-plugins-httprequest*.gem
