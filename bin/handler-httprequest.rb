@@ -46,7 +46,7 @@ class HttpRequest < Sensu::Handler
     requests = HttpRequest::Config.new(settings[config[:json_config]], @event)
     # Maybe async for multiple items?
     requests.list.each do |task|
-      HttpRequest::Task.new(task)
+      HttpRequest::Task.new(task) unless task == {}
     end
   end
 
@@ -174,11 +174,15 @@ class HttpRequest < Sensu::Handler
     end
 
     def validate_exclusives(config)
+      fail_count = 0
       %w[body header params].each do |element|
-        unless config["#{element}_template"].empty? && config[element].empty?
+        fail_count += 1 unless config["#{element}_template"].empty?
+        fail_count += 1 unless config[element].empty?
+        if fail_count > 1
           puts "the keys #{element}_template and #{element} are exclusive."
           return false
         end
+        fail_count = 0
       end
       true
     end
